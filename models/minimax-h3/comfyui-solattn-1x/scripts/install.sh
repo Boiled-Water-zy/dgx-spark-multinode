@@ -105,8 +105,11 @@ done
 say "5/6 链接权重 $H3_MODELS -> ComfyUI/models"
 for sub in diffusion_models text_encoders vae loras upscale_models; do
   mkdir -p "$COMFY/models/$sub" "$H3_MODELS/$sub"
+  # 清掉上一轮留下的悬空软链（下载中途的 .incomplete 会变成死链）
+  find "$COMFY/models/$sub" -maxdepth 1 -xtype l -delete
   for f in "$H3_MODELS/$sub"/*; do
-    [ -e "$f" ] || continue
+    [ -f "$f" ] || continue
+    case "$f" in *.incomplete|*.tmp|*.part) continue ;; esac
     ln -sfn "$f" "$COMFY/models/$sub/$(basename "$f")"
   done
 done

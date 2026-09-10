@@ -69,11 +69,25 @@ ffprobe -v error -f lavfi -i "movie=<产物>.mp4,signalstats" \
   -show_entries frame_tags=lavfi.signalstats.YAVG -of csv=p=0 | head -4
 ```
 
+### 拼长片实测
+
+用 [`scripts/make-short-film.py`](../scripts/make-short-film.py) 逐段生成 + 末帧驱动 + ffmpeg 拼接：
+
+| 分镜 | 段数 | 成片时长 | 总耗时 | 单段 |
+|---|---|---|---|---|
+| 无人集群对海作战 | 6 | 31.0 s | ~13 min | 2.17 min |
+| 姐弟柠檬恶作剧 | 3 | 15.5 s | 7.8 min | 首段 3.33（含模型加载），其余 2.2–2.3 |
+
+首帧驱动这条链对一致性帮助很大：人物长相、衣服、场景在多段之间基本不漂，
+再配合 `style` 前缀里写死的人设描述就够用了。
+
 ## 结论
 
 单台 DGX Spark 跑 MiniMax-H3 完全可用，**720p 出片 2.3 分钟**（360p 生成 + 2× 超分），
 质量和直出 720p 接近而快得多——这是上游总结的关键结论，我们复现了。
 纯 480p 直出 4.1 分钟。
+
+连拍 + 末帧驱动能把 5.17 秒的单段拼成 15–30 秒的连续短片，人物和场景不漂。
 
 服务常驻在 `192.168.130.8:8188`，浏览器直接开就能用；
 要跑回 LLM 的话先 `bash scripts/stop.sh`，再 `~/modelhub/bin/modelhub start ds4-text`。
