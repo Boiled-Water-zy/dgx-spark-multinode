@@ -19,6 +19,7 @@ DGX Spark (GB10) 上的大模型部署方案合集：单节点 / 双节点（Con
 | **Qwen3.5-397B-A17B** | [`models/qwen3.5-397b-a17b/`](models/qwen3.5-397b-a17b) | vLLM INT4 AutoRound TP=2 | 2 | — | 仅配置留档 |
 | **Laguna-S-2.1** | [`models/laguna-s-2.1/`](models/laguna-s-2.1) | vLLM NVFP4 + DFlash 投机 | 1 | — | 见目录 |
 | **Gemma 4 26B-A4B** | [`models/gemma4-26b-a4b/`](models/gemma4-26b-a4b) | vLLM BF16 | 1 | — | 仅配置留档 |
+| **MiniMax-H3**（视频生成） | [`models/minimax-h3/`](models/minimax-h3) | ComfyUI + Sol-Attn（剪枝 FP8 + NVFP4 文本编码器） | 1 | — | 5s 视频 2.3 min@720p / 4.1 min@480p |
 | **BGE Embedding** | [`models/bge-embedding/`](models/bge-embedding) | embedding-server | 1 | — | 未验证 |
 
 - 跨模型评测：[`eval/`](eval)

@@ -1,0 +1,16 @@
+{
+  "name": "uas_maritime",
+  "seed": 20260909,
+  "width": 640,
+  "height": 360,
+  "length": 124,
+  "style": "Cinematic defense concept film, dawn over open ocean, desaturated teal and amber palette, anamorphic widescreen, shallow depth of field, film grain, photoreal, no text overlays.",
+  "shots": [
+    "On the flight deck of a grey warship at dawn, a rack of fixed-wing unmanned aircraft launches in rapid succession, catapult steam and sea spray blowing across the deck, the swarm climbing away over open ocean. Camera: low deck-level tracking shot rising with the launch. Audio: catapult thump, turbine whine spooling up, sea wind, clipped radio chatter.",
+    "Continue the same scene: the unmanned aircraft settle into a tight wedge formation high over the ocean, and a larger command aircraft with a wide belly antenna array slides into frame above them, its array panels unfolding. Camera: slow arc around the formation, sun flaring off the wings. Audio: steady turbines, high-altitude wind, a soft data-link chirp.",
+    "Continue: thin blue data-link beams flick out from the command aircraft to each unmanned aircraft in turn, and the swarm splits cleanly into three groups that peel away on different headings. Camera: slow push-in on the command aircraft, the groups separating behind it. Audio: rapid data chirps, layered radio traffic, wind.",
+    "Continue: the camera descends from the formation to the sea surface, where a group of unmanned surface vessels cuts through the swell in a V formation, wakes foaming white, faint blue data-link lines rising from them to the aircraft overhead. Camera: fast low pass just above the water. Audio: hull slap on waves, spray, engine roar, a data chirp.",
+    "Continue: cut to the onboard sensor view of a lead aircraft looking out over the sea; green wireframe tracking boxes and scrolling telemetry snap onto distant vessels on the horizon, while blue friendly icons converge on them from two axes. Camera: locked sensor gimbal, slight digital jitter, horizon tilting as the aircraft banks. Audio: lock-on tones, radio static, a calm operator voice reading a bearing.",
+    "Continue: wide shot back over the open ocean — bright flashes and tall white water plumes rise from the distant target vessels, and the unmanned aircraft pull up and bank away through the smoke into the dawn light, re-forming into a single wedge. Camera: wide, slow pull back, dawn sun low on the horizon. Audio: distant concussions rolling across the water, wind, turbines, one calm radio call."
+  ]
+}
