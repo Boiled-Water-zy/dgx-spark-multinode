@@ -32,6 +32,11 @@ tail -f /var/log/cluster-ops/telemetry.log
 cat /run/cluster-rail.env
 ```
 
+## 唯一重启权 + 卡死检测（重要设计）
+
+- **supervisor 是集群唯一的重启权**：被监护容器的 docker 重启策略一律拨正为 `restart=no`（supervise 启动容器后强制 `docker update --restart=no`）。否则 docker 的 `unless-stopped` 会和 supervisor 抢——docker 只会原地无序重拉、不清显存孤儿、不重探 GID、不按 worker→master 顺序，崩溃后滚出显存孤儿导致新实例 CUDA OOM 死循环（实测 r=8）。supervisor 自身由 systemd `Restart=always`+开机自启保证常驻。
+- **冷启动 vs 卡死**：光看时间窗（BOOT_GRACE）会把「卡在 NCCL 组网不动」误当「正在加载」而傻等十几分钟。supervise 以容器日志行数当进度指纹，`STALL_SEC`(默认300s) 内日志不再增长才判卡死→重启；日志在推进就继续等。
+
 ## 现场教训（88+67 部署 DS4-flash 实录）
 
 - 光口配置**别写死**：从 46-141 拷来的 .env 写死 `enp1s0f1np1`，但 88/67 实际连的是 `enP2p1s0f0np0`（GID=3）→ GLOO `Unable to find address` 崩。rail 自适应正是为此。
