@@ -1,0 +1,11 @@
+[Unit]
+Description=集群光口自适应（探测光口/GID，配直连地址）
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/cluster-rail.sh
+RemainAfterExit=yes
+TimeoutStartSec=120
+[Install]
+WantedBy=multi-user.target

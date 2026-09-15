@@ -1,0 +1,9 @@
+[Unit]
+Description=GPU 主频封顶（防过热硬关机；锁重启失效故开机重锁）
+After=nvidia-persistenced.service
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/cluster-gpu-guard.sh
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=常驻遥测采集（温度/功耗/利用率/内存，抓过热硬关机前的最后现场）
+After=multi-user.target
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cluster-telemetry.sh
+Restart=always
+RestartSec=10
+[Install]
+WantedBy=multi-user.target

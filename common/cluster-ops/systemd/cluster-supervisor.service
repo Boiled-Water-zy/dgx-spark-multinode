@@ -1,0 +1,16 @@
+[Unit]
+Description=双机看门狗（启动顺序+崩溃自愈+崩溃现场留存）
+After=network-online.target docker.service cluster-rail.service cluster-gpu-guard.service
+Wants=network-online.target cluster-rail.service
+Requires=docker.service
+[Service]
+Type=simple
+User=ai
+Restart=always
+RestartSec=15
+ExecStart=/usr/local/bin/cluster-supervise.sh
+TimeoutStartSec=0
+StandardOutput=append:/var/log/cluster-ops/supervisor.log
+StandardError=append:/var/log/cluster-ops/supervisor.log
+[Install]
+WantedBy=multi-user.target

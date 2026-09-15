@@ -1,0 +1,8 @@
+[Unit]
+Description=周期重探光口（支持热插拔/换口/GID漂移）
+[Timer]
+OnBootSec=15s
+OnUnitActiveSec=60s
+Unit=cluster-rail.service
+[Install]
+WantedBy=timers.target
