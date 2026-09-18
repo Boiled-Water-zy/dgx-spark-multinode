@@ -34,4 +34,12 @@ peer(){ ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=8 "$S
   fi
   echo "==== end ===="
 } > "$F" 2>&1
-echo "[crash-dump] 现场已存 $F"
+# 校验真落盘了再报成功——之前无脑打印"已存"，$LOG_DIR 属主一旦不对（如 root:root，
+# 而本脚本以 User=ai 跑）重定向会静默失败，却仍打印成功，把问题一直藏到事后翻不到现场
+# 才发现（实测踩过：25 次"已存"记录，磁盘上一个文件都没有）。
+if [ -s "$F" ]; then
+  echo "[crash-dump] 现场已存 $F"
+else
+  echo "[crash-dump] 落盘失败！检查 $LOG_DIR 属主/权限（应属 $(id -un) 可写）" >&2
+  exit 1
+fi

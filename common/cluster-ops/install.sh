@@ -61,7 +61,9 @@ sudo install -m0755 "$HERE/crash-dump.sh"      /usr/local/bin/cluster-crash-dump
 sudo install -m0755 "$HERE/supervise.sh"       /usr/local/bin/cluster-supervise.sh
 sudo install -m0644 "$HERE"/systemd/cluster-*.service /etc/systemd/system/
 sudo install -m0644 "$HERE"/systemd/cluster-*.timer   /etc/systemd/system/
-sudo mkdir -p "${LOG_DIR:-/var/log/cluster-ops}"
+# 属主必须是 $SSH_USER：supervisor/crash-dump/telemetry 都以 User=ai 跑，root:root 目录
+# 会让它们建文件静默失败（crash-dump.sh 还会把失败误报成功，双重坑，实测踩过）。
+sudo install -d -o "$SSH_USER" -g "$SSH_USER" -m0755 "${LOG_DIR:-/var/log/cluster-ops}"
 # supervisor(User=ai) 免密调 rail/gpu-guard/clean（重启前重探光口+重锁频+清孤儿）
 echo "$SSH_USER ALL=(root) NOPASSWD: /usr/local/sbin/cluster-rail.sh, /usr/local/sbin/cluster-gpu-guard.sh, /usr/local/sbin/cluster-clean.sh" \
   | sudo tee /etc/sudoers.d/cluster-ops >/dev/null
@@ -81,7 +83,7 @@ peer "sudo install -m0644 ~/cluster-ops/ops.env /etc/cluster-ops.env
       sudo install -m0755 ~/cluster-ops/telemetry.sh /usr/local/bin/cluster-telemetry.sh
       sudo install -m0644 ~/cluster-ops/systemd/cluster-rail.service ~/cluster-ops/systemd/cluster-rail.timer \
                           ~/cluster-ops/systemd/cluster-gpu-guard.service ~/cluster-ops/systemd/cluster-telemetry.service /etc/systemd/system/
-      sudo mkdir -p /var/log/cluster-ops
+      sudo install -d -o '$SSH_USER' -g '$SSH_USER' -m0755 /var/log/cluster-ops
       echo '$SSH_USER ALL=(root) NOPASSWD: /usr/local/sbin/cluster-rail.sh, /usr/local/sbin/cluster-gpu-guard.sh, /usr/local/sbin/cluster-clean.sh' | sudo tee /etc/sudoers.d/cluster-ops >/dev/null
       sudo chmod 0440 /etc/sudoers.d/cluster-ops
       sudo systemctl daemon-reload
