@@ -56,6 +56,11 @@ cur=$(ip -o -4 addr show | awk -v ip="$MY_IP/" '$4 ~ "^"ip {print $2; exit}')
 if [ -n "$cur" ] && ping -c1 -W2 -I "$cur" "$PEER_IP" >/dev/null 2>&1; then
   log "已通（$cur），不动网络"; settle "$cur"; exit 0; fi
 
+# NM unmanaged 后开机光口无人 up、operstate=down、carrier=0，下面 carrier 判据会把所有口跳过。
+# 先把候选口都 up 起来、给 link 协商时间，再探测（否则 rail 永远配不上、supervisor 空等）。
+for ifname in $RAIL_CANDIDATES; do [ -e "/sys/class/net/$ifname" ] && ip link set "$ifname" up 2>/dev/null; done
+sleep 4
+
 # 2) 逐个候选口试：配地址 → ping 对端（对端可能开机慢，整轮重试）
 for round in 1 2 3 4 5 6; do
   for ifname in $RAIL_CANDIDATES; do

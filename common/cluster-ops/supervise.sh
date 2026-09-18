@@ -84,6 +84,9 @@ master_uptime(){ # 容器已启动秒数；容器不存在返回大数（当死�
 STALL_SEC=${STALL_SEC:-300}
 _last_lines=0; _last_move=$(date +%s)
 log_progressing(){
+  # worker 失联时 master 会反复刷 "No available shared memory broadcast block" 卡死行——
+  # 日志行数在涨但其实已卡死，会骗过"行数增长=推进"。这类刷屏行直接判不推进→走卡死重启（实测坑）。
+  docker logs "$CONTAINER" 2>&1 | tail -3 | grep -q "No available shared memory broadcast block" && return 1
   local n; n=$(docker logs "$CONTAINER" 2>&1 | wc -l 2>/dev/null || echo 0)
   if [ "${n:-0}" -gt "$_last_lines" ]; then _last_lines=$n; _last_move=$(date +%s); return 0; fi
   [ $(( $(date +%s) - _last_move )) -lt "$STALL_SEC" ]   # 仍在停滞窗口内=还算推进

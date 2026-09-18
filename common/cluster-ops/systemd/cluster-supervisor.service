@@ -6,6 +6,9 @@ Requires=docker.service
 [Service]
 Type=simple
 User=ai
+# 服务以 User=ai 跑，必须补 docker 组，否则进程无权限 docker ps/inspect →
+# master_running 误判 running=n、uptime=999999 → 误判死亡重启已 healthy 的双机（实测坑）。
+SupplementaryGroups=docker
 Restart=always
 RestartSec=15
 ExecStart=/usr/local/bin/cluster-supervise.sh
