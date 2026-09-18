@@ -51,6 +51,29 @@ emit(){ local ifname=$1 hca=$2 gid=$3
 settle(){ local ifname=$1 hca gid; hca=$(hca_of "$ifname" || echo unknown)
   gid=$(gid_index_of "$hca" "$MY_IP"); emit "$ifname" "$hca" "$gid"; }
 
+# 0) 清残留：多网卡机器（一台插了两根光纤）上，MY_IP 可能同时残留在多块候选网卡上——
+#    「已通不动网络」只认第一块命中的网卡，「保底」会遍历所有候选口都配一遍，「探测」对
+#    「本来就在」的 IP 不清理，三处都会留下同 IP 多网卡的残局：内核路由/ARP 因此打架，
+#    TCP 三次握手能走通、但对端看到的物理链路和预期不一致，NCCL/Gloo 握手数据错位，
+#    表现为「连接已 ESTABLISHED 却永久卡死」（实测坑：断网复现时踩过，比「选错口」更隐蔽）。
+#    每次运行先扫一遍，只留 ping 得通的那块，其余全部摘掉，后面的逻辑才有干净的起点。
+ifs_with_ip=""
+for ifname in $RAIL_CANDIDATES; do
+  [ -e "/sys/class/net/$ifname" ] || continue
+  ip -o -4 addr show "$ifname" | awk '{print $4}' | grep -q "^$MY_IP/" && ifs_with_ip="$ifs_with_ip $ifname"
+done
+if [ "$(echo $ifs_with_ip | wc -w)" -gt 1 ]; then
+  keep=""
+  for ifname in $ifs_with_ip; do
+    [ -z "$keep" ] && ping -c1 -W2 -I "$ifname" "$PEER_IP" >/dev/null 2>&1 && keep=$ifname
+  done
+  for ifname in $ifs_with_ip; do
+    [ "$ifname" = "$keep" ] && continue
+    ip addr del "$MY_IP/$RAIL_PREFIX" dev "$ifname" 2>/dev/null
+    log "清理多网卡同 IP 残留: $ifname（保留 ${keep:-无，等下面重新探测}）"
+  done
+fi
+
 # 1) 当前已通 → 不动网络
 cur=$(ip -o -4 addr show | awk -v ip="$MY_IP/" '$4 ~ "^"ip {print $2; exit}')
 if [ -n "$cur" ] && ping -c1 -W2 -I "$cur" "$PEER_IP" >/dev/null 2>&1; then
@@ -68,11 +91,13 @@ for round in 1 2 3 4 5 6; do
     [ "$(cat "/sys/class/net/$ifname/carrier" 2>/dev/null)" = 1 ] || continue
     if ! ip -o -4 addr show "$ifname" | awk '{print $4}' | grep -q "^$MY_IP/"; then
       ip link set "$ifname" up 2>/dev/null
-      ip addr add "$MY_IP/$RAIL_PREFIX" dev "$ifname" 2>/dev/null; added=1
-    else added=0; fi
+      ip addr add "$MY_IP/$RAIL_PREFIX" dev "$ifname" 2>/dev/null
+    fi
     if ping -c1 -W2 -I "$ifname" "$PEER_IP" >/dev/null 2>&1; then
       log "第 $round 轮：$ifname 通了"; settle "$ifname"; exit 0; fi
-    [ "$added" = 1 ] && ip addr del "$MY_IP/$RAIL_PREFIX" dev "$ifname" 2>/dev/null
+    # 不管这次是不是自己 add 的，ping 不通就清掉——「本来就在」的 IP 若不清理，会在多网卡
+    # 机器上留下同 IP 残留（见上面 0 号步骤的注释），这是之前反复复现同一坑的直接原因。
+    ip addr del "$MY_IP/$RAIL_PREFIX" dev "$ifname" 2>/dev/null
   done
   log "第 $round 轮没通，等对端…"; sleep 10
 done
